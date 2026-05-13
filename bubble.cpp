@@ -30,21 +30,14 @@ void bubbleParallel(vector<int>& arr) {
 
     for (int i = 0; i < n; i++) {
 
-        // Even phase
+        int start= i%2;
         #pragma omp parallel for
-        for (int j = 0; j < n - 1; j += 2) {
+        for (int j = start; j < n - 1; j += 2) {
             if (arr[j] > arr[j + 1]) {
                 swap(arr[j], arr[j + 1]);
             }
         }
 
-        // Odd phase
-        #pragma omp parallel for
-        for (int j = 1; j < n - 1; j += 2) {
-            if (arr[j] > arr[j + 1]) {
-                swap(arr[j], arr[j + 1]);
-            }
-        }
     }
 
     cout << "Parallel Bubble Sort Done\n";
