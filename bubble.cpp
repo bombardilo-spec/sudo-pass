@@ -6,7 +6,7 @@
 using namespace std;
 
 // ---------------- SEQUENTIAL BUBBLE SORT ----------------
-void bubbleSequential(vector<int> arr) {
+void bubbleSequential(vector<int>& arr) {
 
     int n = arr.size();
 
@@ -24,7 +24,7 @@ void bubbleSequential(vector<int> arr) {
 }
 
 // ---------------- PARALLEL BUBBLE SORT (ODD-EVEN) ----------------
-void bubbleParallel(vector<int> arr) {
+void bubbleParallel(vector<int>& arr) {
 
     int n = arr.size();
 
@@ -48,6 +48,15 @@ void bubbleParallel(vector<int> arr) {
     }
 
     cout << "Parallel Bubble Sort Done\n";
+}
+
+// ---------------- PRINT FUNCTION ----------------
+void printArray(vector<int>& arr) {
+
+    for (int x : arr) {
+        cout << x << " ";
+    }
+    cout << endl;
 }
 
 // ---------------- MAIN ----------------
@@ -75,6 +84,9 @@ int main() {
          << chrono::duration<double>(end - start).count()
          << " sec\n";
 
+    cout << "Sequential Sorted Array: ";
+    printArray(a);
+
     start = chrono::high_resolution_clock::now();
     bubbleParallel(b);
     end = chrono::high_resolution_clock::now();
@@ -82,6 +94,9 @@ int main() {
     cout << "Parallel Time: "
          << chrono::duration<double>(end - start).count()
          << " sec\n";
+
+    cout << "Parallel Sorted Array: ";
+    printArray(b);
 
     return 0;
 }
