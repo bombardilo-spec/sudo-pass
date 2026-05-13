@@ -63,6 +63,15 @@ void mergeParallel(vector<int>& arr, int l, int r) {
     }
 }
 
+// ---------------- PRINT FUNCTION ----------------
+void printArray(vector<int>& arr) {
+
+    for (int x : arr) {
+        cout << x << " ";
+    }
+    cout << endl;
+}
+
 // ---------------- MAIN ----------------
 int main() {
 
@@ -80,14 +89,23 @@ int main() {
     vector<int> a = original;
     vector<int> b = original;
 
+    // ---------------- SEQUENTIAL ----------------
     auto start = chrono::high_resolution_clock::now();
+
     mergeSequential(a, 0, n - 1);
+
     auto end = chrono::high_resolution_clock::now();
+
+    cout << "Sequential Merge Sort Done\n";
 
     cout << "Sequential Merge Sort Time: "
          << chrono::duration<double>(end - start).count()
          << " sec\n";
 
+    cout << "Sequential Sorted Array: ";
+    printArray(a);
+
+    // ---------------- PARALLEL ----------------
     start = chrono::high_resolution_clock::now();
 
     #pragma omp parallel
@@ -98,9 +116,14 @@ int main() {
 
     end = chrono::high_resolution_clock::now();
 
+    cout << "Parallel Merge Sort Done\n";
+
     cout << "Parallel Merge Sort Time: "
          << chrono::duration<double>(end - start).count()
          << " sec\n";
+
+    cout << "Parallel Sorted Array: ";
+    printArray(b);
 
     return 0;
 }
