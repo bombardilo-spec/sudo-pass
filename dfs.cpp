@@ -1,71 +1,75 @@
+// HPC_DFS
+
 #include <iostream>
 #include <vector>
+#include <queue>
 #include <omp.h>
 
 using namespace std;
 
-// ---------------- NODE STRUCTURE ----------------
-struct Node {
-    int data;
-    vector<Node*> neighbors;
+class Graph {
+public:
+    int V;
+    vector<vector<int>> adj;
+    vector<bool> visited;
+
+    Graph(int V) {
+        this->V = V;
+        adj.resize(V);
+        visited.resize(V, false);
+    }
+
+    void addEdge(int u, int v) {
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+
+    void parallelDFS(int node) {
+
+        #pragma omp critical
+        {
+            if (visited[node]) return;
+            visited[node] = true;
+            cout << node << " ";
+        }
+
+        #pragma omp parallel for
+        for (int i = 0; i < adj[node].size(); i++) {
+            int neighbor = adj[node][i];
+
+            if (!visited[neighbor]) {
+                parallelDFS(neighbor);
+            }
+        }
+    }
 };
 
-// ---------------- PARALLEL DFS ----------------
-void parallelDFS(Node* node, vector<bool>& visited) {
-
-    // check + mark visited safely
-    bool isSafe = false;
-
-    #pragma omp critical
-    {
-        if (!visited[node->data]) {
-            visited[node->data] = true;
-            cout << node->data << " ";
-            isSafe = true;
-        }
-    }
-
-    // if already visited, return
-    if (!isSafe)
-        return;
-
-    // explore neighbors in parallel
-    #pragma omp parallel for
-    for (int i = 0; i < node->neighbors.size(); i++) {
-
-        Node* neigh = node->neighbors[i];
-
-        if (!visited[neigh->data]) {
-            parallelDFS(neigh, visited);
-        }
-    }
-}
-
-// ---------------- MAIN FUNCTION ----------------
 int main() {
+    int V, E;
 
-    // Create graph (example)
-    vector<Node> graph(5);
+    cout << "Enter number of vertices: ";
+    cin >> V;
 
-    for (int i = 0; i < 5; i++)
-        graph[i].data = i;
+    Graph g(V);
 
-    // Undirected graph
-    graph[0].neighbors = {&graph[1], &graph[2]};
-    graph[1].neighbors = {&graph[0], &graph[3]};
-    graph[2].neighbors = {&graph[0], &graph[4]};
-    graph[3].neighbors = {&graph[1]};
-    graph[4].neighbors = {&graph[2]};
+    cout << "Enter number of edges: ";
+    cin >> E;
 
-    vector<bool> visited(5, false);
+    cout << "Enter " << E << " edges (u v):\n";
 
-    cout << "Parallel DFS Traversal: ";
-
-    #pragma omp parallel
-    {
-        #pragma omp single
-        parallelDFS(&graph[0], visited);
+    for (int i = 0; i < E; i++) {
+        int u, v;
+        cin >> u >> v;
+        g.addEdge(u, v);
     }
+
+    int startNode;
+
+    cout << "Enter starting node for DFS: ";
+    cin >> startNode;
+
+    cout << "Parallel DFS: ";
+    g.parallelDFS(startNode);
 
     cout << endl;
 
