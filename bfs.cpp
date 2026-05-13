@@ -1,3 +1,5 @@
+// HPC - BFS
+
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -5,78 +7,95 @@
 
 using namespace std;
 
-// ---------------- NODE STRUCTURE ----------------
-struct Node {
-    int data;
-    vector<Node*> neighbors;
-};
+class GraphBFS {
+public:
+    int V;
+    vector<vector<int>> adj;
 
-// ---------------- PARALLEL BFS ----------------
-void parallelBFS(Node* start, vector<bool>& visited) {
+    GraphBFS(int V) {
+        this->V = V;
+        adj.resize(V);
+    }
 
-    queue<Node*> q;
+    void addEdge(int u, int v) {
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
 
-    q.push(start);
-    visited[start->data] = true;
+    void parallelBFS(int start) {
 
-    while (!q.empty()) {
+        vector<bool> visited(V, false);
+        queue<int> q;
 
-        int size = q.size();
+        visited[start] = true;
+        q.push(start);
 
-        #pragma omp parallel for
-        for (int i = 0; i < size; i++) {
+        cout << "Parallel BFS: ";
 
-            Node* node = nullptr;
+        while (!q.empty()) {
 
-            // safely pop from queue
-            #pragma omp critical
-            {
-                node = q.front();
-                q.pop();
-            }
+            int qSize = q.size();
 
-            cout << node->data << " ";
+            #pragma omp parallel for
+            for (int i = 0; i < qSize; i++) {
 
-            // explore neighbors
-            for (Node* neigh : node->neighbors) {
+                int node;
 
                 #pragma omp critical
                 {
-                    if (!visited[neigh->data]) {
-                        visited[neigh->data] = true;
-                        q.push(neigh);
+                    if (!q.empty()) {
+                        node = q.front();
+                        q.pop();
+                        cout << node << " ";
+                    }
+                }
+
+                for (int neighbor : adj[node]) {
+
+                    if (!visited[neighbor]) {
+
+                        #pragma omp critical
+                        {
+                            visited[neighbor] = true;
+                            q.push(neighbor);
+                        }
                     }
                 }
             }
         }
-    }
-}
 
-// ---------------- MAIN FUNCTION ----------------
+        cout << endl;
+    }
+};
+
 int main() {
 
-    // Create graph (example)
-    vector<Node> graph(5);
+    int V, E;
 
-    graph[0].data = 0;
-    graph[1].data = 1;
-    graph[2].data = 2;
-    graph[3].data = 3;
-    graph[4].data = 4;
+    cout << "Enter number of vertices: ";
+    cin >> V;
 
-    // Undirected graph
-    graph[0].neighbors = {&graph[1], &graph[2]};
-    graph[1].neighbors = {&graph[0], &graph[3]};
-    graph[2].neighbors = {&graph[0], &graph[4]};
-    graph[3].neighbors = {&graph[1]};
-    graph[4].neighbors = {&graph[2]};
+    GraphBFS g(V);
 
-    vector<bool> visited(5, false);
+    cout << "Enter number of edges: ";
+    cin >> E;
 
-    cout << "Parallel BFS Traversal: ";
-    parallelBFS(&graph[0], visited);
+    cout << "Enter " << E << " edges (u v):\n";
 
-    cout << endl;
+    for (int i = 0; i < E; i++) {
+
+        int u, v;
+        cin >> u >> v;
+
+        g.addEdge(u, v);
+    }
+
+    int startNode;
+
+    cout << "Enter starting node for BFS: ";
+    cin >> startNode;
+
+    g.parallelBFS(startNode);
 
     return 0;
 }
